@@ -74,7 +74,6 @@ def _wind_label(w):
 
 # -----------------------------
 # SAFETY TEXT
-# -----------------------------
 def _build_safety_text(temp, humidity, wind_speed_kmh, category, climate):
     tips = []
     t = temp or 25
@@ -82,40 +81,41 @@ def _build_safety_text(temp, humidity, wind_speed_kmh, category, climate):
     w = wind_speed_kmh or 0
     cat = (category or "").lower()
 
-    # Temperature
+    # Temperature safety
     if t >= 36:
-        tips.append("Try to avoid direct sunlight for long periods and drink water frequently.")
+        tips.append("Avoid direct sunlight for long periods, stay hydrated, and take breaks in shaded areas.")
     elif t <= 3:
-        tips.append("Wear warm winter layers and avoid staying outdoors for too long.")
+        tips.append("Wear strong winter layers and limit outdoor exposure, especially during windy hours.")
 
-    # Humidity
+    # Humidity safety
     if h >= 80 and t >= 28:
-        tips.append("High humidity can make the day feel heavy, so take short breaks in cooler places.")
+        tips.append("High humidity can increase fatigue, so rest often and avoid strenuous outdoor activity.")
 
-    # Wind
+    # Wind safety
     if w >= 40:
-        tips.append("Strong winds are likely, so be careful near open areas and while riding two-wheelers.")
+        tips.append("Strong winds may cause reduced visibility and balance issues, so be extra careful in open areas.")
     elif w >= 25:
-        tips.append("It may feel breezy, so secure light items on balconies or open spaces.")
+        tips.append("Breezy conditions can disturb light objects, so secure anything placed outdoors.")
 
     # Rain / Storm / Snow
     if cat in ["rain", "drizzle"]:
-        tips.append("Roads may be slippery, so walk carefully and carry an umbrella or raincoat.")
+        tips.append("Roads and footpaths may be slippery, so walk slowly and keep rain protection handy.")
     if cat in ["thunderstorm", "storm"]:
-        tips.append("Avoid open spaces and stay away from isolated trees during lightning.")
+        tips.append("Stay indoors during lightning, avoid open grounds, and keep away from tall isolated trees.")
     if cat in ["snow", "snowy"]:
-        tips.append("Snow and ice can make surfaces risky, so move slowly and plan extra travel time.")
+        tips.append("Snow and ice can make travel unsafe, so move carefully and allow extra time for your trips.")
 
-    # Climate-related
+    # Climate-specific
     if climate == "desert hot" and t >= 32:
-        tips.append("Dry desert heat can dehydrate you quickly, so keep water with you if you step out.")
+        tips.append("Dry desert heat can dehydrate quickly, so carry sufficient water if you step out.")
     if climate.startswith("coastal") and cat in ["rain", "drizzle", "thunderstorm"]:
-        tips.append("Coastal showers can arrive suddenly, so check the sky before long trips.")
+        tips.append("Coastal rains may start suddenly, so plan outdoor activities with caution.")
 
     if not tips:
-        return "No major weather related safety concerns are expected today."
+        return "No major weather related safety concerns are expected today, but staying aware of local conditions is always helpful."
 
     return " ".join(tips)
+
 
 
 # -----------------------------
@@ -251,3 +251,4 @@ def generate_ai_weather_guide(
         "safety": safety_text,
         "insight": insight_text,
     }
+
