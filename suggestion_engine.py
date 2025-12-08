@@ -196,17 +196,18 @@ def _build_insight_text(city, country, temp, feels_like, humidity, pressure, win
         pieces.append("Clear skies allow stronger sunlight, especially around mid-day.")
 
     # Climate natural-language notes
-    climate_map = {
-        "coastal humid": f"{city} often mixes sea breeze with moisture, making even mild days feel heavier.",
-        "desert hot": f"{city} usually has sharp daytime heat and quick cooling at night, a common desert pattern.",
-        "tropical wet": f"{city} often sees quick shifts between sun and clouds due to tropical moisture.",
-        "humid tropical": f"{city} is influenced by warm humid air, making warmth feel stronger.",
-        "tropical asian": f"{city} fits a tropical pattern where weather shifts happen quickly.",
-        "continental cold": f"{city} experiences sharp cold swings, especially after sunset or during clear nights.",
-        "cold northern": f"{city} belongs to colder northern zones where temperatures drop quickly at night.",
-        "cold rainy": f"{city}'s cool and rainy style often keeps temperatures on the softer side.",
-        "cool european": f"{city} usually sees cloudier skies that reduce daytime heating.",
-    }
+climate_map = {
+    "coastal humid": f"{city} often gets evening stickiness as humidity settles in.",
+    "desert hot": f"{city} tends to cool down quickly at night despite strong daytime heat.",
+    "tropical wet": f"{city} may see sudden short bursts of rainfall due to tropical patterns.",
+    "humid tropical": f"{city} regularly alternates between warm and humid spells.",
+    "tropical asian": f"{city} commonly experiences quick weather shifts through the day.",
+    "continental cold": f"{city} cools more sharply after sunset, especially on clearer evenings.",
+    "cold northern": f"{city} often sees cold gusts forming during night hours.",
+    "cold rainy": f"{city} usually builds moisture through the day, leading to softer evenings.",
+    "cool european": f"{city} tends to lose heat steadily through the evening due to cloud cover.",
+}
+
 
     pieces.append(climate_map.get(climate, f"Today behaves normally for {city}'s usual climate."))
 
@@ -251,5 +252,6 @@ def generate_ai_weather_guide(
         "safety": safety_text,
         "insight": insight_text,
     }
+
 
 
