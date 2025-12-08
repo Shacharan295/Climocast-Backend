@@ -1,9 +1,8 @@
-# suggestion_engine.py
 import random
 
-# -----------------------------
-# City / Region Climate Profiles (NO HYPHENS)
-# -----------------------------
+# ----------------------------------------
+# City / Region Climate Profiles
+# ----------------------------------------
 CITY_CLIMATE = {
     "mumbai": "coastal humid",
     "chennai": "coastal hot",
@@ -17,9 +16,9 @@ CITY_CLIMATE = {
     "sydney": "coastal mild",
 }
 
+
 def _climate(city, country):
     city_key = (city or "").lower()
-
     if city_key in CITY_CLIMATE:
         return CITY_CLIMATE[city_key]
 
@@ -37,9 +36,9 @@ def _climate(city, country):
     return "generic climate"
 
 
-# -----------------------------
+# ----------------------------------------
 # Temperature Feel
-# -----------------------------
+# ----------------------------------------
 def _temp_feel(temp, feels_like):
     t = feels_like if feels_like is not None else temp
     if t is None:
@@ -55,15 +54,16 @@ def _temp_feel(temp, feels_like):
     return "freezing"
 
 
-# -----------------------------
-# Helpers
-# -----------------------------
+# ----------------------------------------
+# Labels (Humidity / Wind)
+# ----------------------------------------
 def _humidity_label(h):
     if h is None: return "moderate"
     if h >= 80: return "very humid"
     if h >= 60: return "humid"
     if h <= 30: return "dry"
     return "normal"
+
 
 def _wind_label(w):
     if w is None: return "calm"
@@ -72,8 +72,9 @@ def _wind_label(w):
     return "light wind"
 
 
-# -----------------------------
-# SAFETY TEXT
+# ----------------------------------------
+# SAFETY CONCERN TEXT (Detailed & Useful)
+# ----------------------------------------
 def _build_safety_text(temp, humidity, wind_speed_kmh, category, climate):
     tips = []
     t = temp or 25
@@ -81,47 +82,48 @@ def _build_safety_text(temp, humidity, wind_speed_kmh, category, climate):
     w = wind_speed_kmh or 0
     cat = (category or "").lower()
 
-    # Temperature safety
+    # Temperature
     if t >= 36:
-        tips.append("Avoid direct sunlight for long periods, stay hydrated, and take breaks in shaded areas.")
+        tips.append("Avoid long exposure to direct sunlight and keep yourself hydrated throughout the day.")
     elif t <= 3:
-        tips.append("Wear strong winter layers and limit outdoor exposure, especially during windy hours.")
+        tips.append("Wear strong winter layers and reduce outdoor exposure, especially when the wind picks up.")
 
-    # Humidity safety
+    # Humidity
     if h >= 80 and t >= 28:
-        tips.append("High humidity can increase fatigue, so rest often and avoid strenuous outdoor activity.")
+        tips.append("High humidity can add extra strain, so take short breaks in cooler or shaded spots.")
 
-    # Wind safety
+    # Wind
     if w >= 40:
-        tips.append("Strong winds may cause reduced visibility and balance issues, so be extra careful in open areas.")
+        tips.append("Strong winds may reduce visibility and balance, so stay cautious in open areas.")
     elif w >= 25:
-        tips.append("Breezy conditions can disturb light objects, so secure anything placed outdoors.")
+        tips.append("Breezy conditions may disturb lighter objects outdoors, so secure anything on balconies or terraces.")
 
-    # Rain / Storm / Snow
+    # Rain / storm / snow
     if cat in ["rain", "drizzle"]:
-        tips.append("Roads and footpaths may be slippery, so walk slowly and keep rain protection handy.")
+        tips.append("Roads and paths can be slippery, so walk slowly and keep rain protection handy.")
     if cat in ["thunderstorm", "storm"]:
-        tips.append("Stay indoors during lightning, avoid open grounds, and keep away from tall isolated trees.")
+        tips.append("Stay indoors during lightning and avoid open grounds or isolated tall trees.")
     if cat in ["snow", "snowy"]:
-        tips.append("Snow and ice can make travel unsafe, so move carefully and allow extra time for your trips.")
+        tips.append("Snow or ice can reduce grip, so move carefully and allow extra time for travel.")
 
-    # Climate-specific
+    # Climate specific
     if climate == "desert hot" and t >= 32:
-        tips.append("Dry desert heat can dehydrate quickly, so carry sufficient water if you step out.")
+        tips.append("Dry desert heat can cause dehydration quickly, so carry water if you step outside.")
     if climate.startswith("coastal") and cat in ["rain", "drizzle", "thunderstorm"]:
-        tips.append("Coastal rains may start suddenly, so plan outdoor activities with caution.")
+        tips.append("Coastal showers can begin suddenly, so plan longer activities with caution.")
 
     if not tips:
-        return "No major weather related safety concerns are expected today, but staying aware of local conditions is always helpful."
+        return "No major weather-related concerns today, but staying aware of changing conditions is always helpful."
 
     return " ".join(tips)
 
 
-
-# -----------------------------
-# SUMMARY TEXT (CAST TODAY)
-# -----------------------------
+# ----------------------------------------
+# SUMMARY TEXT (Cast Today)
+# Clean, warm, daytime-focused — NO NIGHTTIME overlap.
+# ----------------------------------------
 def _build_summary_text(city, country, temp, feels_like, humidity, wind_speed_kmh, category, description, climate):
+
     feel_word = _temp_feel(temp, feels_like)
     hum_label = _humidity_label(humidity)
     wind_label = _wind_label(wind_speed_kmh)
@@ -129,7 +131,7 @@ def _build_summary_text(city, country, temp, feels_like, humidity, wind_speed_km
 
     base_templates = [
         f"In {city}, {country}, the day feels {feel_word} with mostly {cat} conditions.",
-        f"{city}, {country} is seeing a {feel_word} kind of day with {cat} skies.",
+        f"{city}, {country} is experiencing a {feel_word} day with {cat} skies.",
         f"Overall, {city} has a {feel_word} feel today with {cat} being the main pattern.",
     ]
 
@@ -137,27 +139,27 @@ def _build_summary_text(city, country, temp, feels_like, humidity, wind_speed_km
     humidity_part = f" The air is {hum_label}, with about {humidity}% humidity."
     wind_part = f" Winds stay {wind_label}, around {wind_speed_kmh:.1f} km/h."
 
-    # Climate-friendly extra wording
- climate_extra_map = {
-    "coastal humid": " Coastal humidity can make the warmth feel stronger than usual.",
-    "tropical wet": " Moist tropical air can add heaviness to the day.",
-    "humid tropical": " The humidity in this region often enhances the warmth.",
-    "desert hot": " Dry desert heat increases the need for shade and regular hydration.",
-    "continental cold": " Cold continental areas often feel sharper during the day.",
-    "cold northern": " Northern air patterns tend to keep daytime temperatures on the cooler side.",
-    "cold rainy": " Cloudy or rainy conditions can soften the daytime temperature.",
-    "cool european": " Cloud-covered European climates often reduce daytime warmth slightly.",
-}
+    climate_extra_map = {
+        "coastal humid": " Coastal humidity can make the warmth feel slightly stronger.",
+        "tropical wet": " Tropical moisture can add a bit of heaviness to the day.",
+        "humid tropical": " The humid air enhances the warmth through the afternoon.",
+        "desert hot": " Dry desert warmth often feels sharper during the daytime.",
+        "continental cold": " Daytime cold in continental regions can feel crisp and sharp.",
+        "cold northern": " Northern daytime temperatures often stay on the cooler side.",
+        "cold rainy": " Cloudy or rainy conditions can make the day feel softer and cooler.",
+        "cool european": " Cloud cover in such regions usually reduces daytime heating.",
+    }
 
     climate_extra = climate_extra_map.get(climate, "")
 
     return random.choice(base_templates) + temp_part + humidity_part + wind_part + climate_extra
 
 
-# -----------------------------
-# INSIGHT TEXT (CLIMATE INSIGHT)
-# -----------------------------
+# ----------------------------------------
+# CLIMATE INSIGHT (Short, Smart, Engaging — max 3 sentences)
+# ----------------------------------------
 def _build_insight_text(city, country, temp, feels_like, humidity, pressure, wind_speed_kmh, category, climate):
+
     pieces = []
     t = temp or 25
     fl = feels_like or t
@@ -167,56 +169,57 @@ def _build_insight_text(city, country, temp, feels_like, humidity, pressure, win
     p = pressure or 1013
     cat = (category or "").lower()
 
-    # Feels-like difference
+    # Feels-like comparison
     if diff >= 2:
-        pieces.append("It feels warmer than the actual temperature, mostly due to humidity and surrounding conditions.")
+        pieces.append("It feels a little warmer than the actual temperature, mostly due to local humidity.")
     elif diff <= -2:
-        pieces.append("It feels cooler than the reading, likely helped by wind or lower humidity.")
+        pieces.append("It feels slightly cooler than the reading, helped by wind or lower moisture.")
     else:
-        pieces.append("The feels like temperature is almost the same as the real one, so conditions should feel predictable.")
+        pieces.append("The feels like temperature is almost identical to the actual reading today.")
 
-    # Humidity
+    # Humidity insight
     if h >= 80:
-        pieces.append("High humidity can trap heat around the body, making the day feel heavier.")
+        pieces.append("High humidity can make the air feel heavier than usual.")
     elif h <= 30:
-        pieces.append("Low humidity keeps the air dry, which can feel sharp on the skin.")
+        pieces.append("Dry air adds a sharper feel to the temperature.")
 
-    # Pressure notes
+    # Pressure insight
     if p >= 1020:
-        pieces.append("Higher pressure usually brings calmer and more settled weather.")
+        pieces.append("Higher pressure usually brings calm and settled weather.")
     elif p <= 1005:
-        pieces.append("Lower pressure can hint at clouds, changes, or possible rain later.")
+        pieces.append("Lower pressure hints at changing skies or possible light rain.")
 
-    # Wind + sky
+    # Light wind and sky behavior
     if w >= 35:
-        pieces.append("Strong winds can make temperatures feel lower, especially in open spaces.")
+        pieces.append("Strong winds can lower how the temperature feels, especially in open spaces.")
     if cat in ["rain", "drizzle"]:
-        pieces.append("Passing showers may cool the surface slightly.")
+        pieces.append("Passing showers may cool the surroundings briefly.")
     if cat in ["clear", "sunny"]:
-        pieces.append("Clear skies allow stronger sunlight, especially around mid-day.")
+        pieces.append("Clear skies allow mid-day sunlight to feel stronger.")
 
-    # Climate natural-language notes
-climate_map = {
-    "coastal humid": f"{city} often gets evening stickiness as humidity settles in.",
-    "desert hot": f"{city} tends to cool down quickly at night despite strong daytime heat.",
-    "tropical wet": f"{city} may see sudden short bursts of rainfall due to tropical patterns.",
-    "humid tropical": f"{city} regularly alternates between warm and humid spells.",
-    "tropical asian": f"{city} commonly experiences quick weather shifts through the day.",
-    "continental cold": f"{city} cools more sharply after sunset, especially on clearer evenings.",
-    "cold northern": f"{city} often sees cold gusts forming during night hours.",
-    "cold rainy": f"{city} usually builds moisture through the day, leading to softer evenings.",
-    "cool european": f"{city} tends to lose heat steadily through the evening due to cloud cover.",
-}
+    # Climate style – completely different from the summary
+    climate_map = {
+        "coastal humid": f"{city} often feels heavier in the evenings due to coastal moisture.",
+        "desert hot": f"{city} cools down quickly at night despite warm daytime heat.",
+        "tropical wet": f"{city} commonly sees quick shifts between sunshine and cloud cover.",
+        "humid tropical": f"{city} often alternates between warm and humid spells throughout the day.",
+        "tropical asian": f"{city} frequently experiences fast-changing weather patterns.",
+        "continental cold": f"{city} cools noticeably after sunset, especially on clearer evenings.",
+        "cold northern": f"{city} often develops colder gusts during the night hours.",
+        "cold rainy": f"{city} tends to soften in the evening as moisture builds through the day.",
+        "cool european": f"{city} loses daytime warmth steadily due to regular cloud cover.",
+    }
+
+    pieces.append(climate_map.get(climate, f"Conditions today follow a usual pattern for {city}."))
+
+    # Limit to 3 sentences
+    text = ". ".join(" ".join(pieces).split(". ")[:3]) + "."
+    return text
 
 
-    pieces.append(climate_map.get(climate, f"Today behaves normally for {city}'s usual climate."))
-
-    return " ".join(pieces)
-
-
-# -----------------------------
+# ----------------------------------------
 # MAIN PUBLIC FUNCTION
-# -----------------------------
+# ----------------------------------------
 def generate_ai_weather_guide(
     city,
     country,
@@ -233,26 +236,8 @@ def generate_ai_weather_guide(
 ):
     climate = _climate(city, country)
 
-    summary_text = _build_summary_text(
-        city, country, temp, feels_like, humidity, wind_speed_kmh,
-        category, description, climate
-    )
-
-    safety_text = _build_safety_text(
-        temp, humidity, wind_speed_kmh, category, climate
-    )
-
-    insight_text = _build_insight_text(
-        city, country, temp, feels_like, humidity, pressure,
-        wind_speed_kmh, category, climate
-    )
-
     return {
-        "summary": summary_text,
-        "safety": safety_text,
-        "insight": insight_text,
+        "summary": _build_summary_text(city, country, temp, feels_like, humidity, wind_speed_kmh, category, description, climate),
+        "safety": _build_safety_text(temp, humidity, wind_speed_kmh, category, climate),
+        "insight": _build_insight_text(city, country, temp, feels_like, humidity, pressure, wind_speed_kmh, category, climate),
     }
-
-
-
-
