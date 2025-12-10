@@ -88,7 +88,7 @@ def get_weather():
     lon = current["coord"]["lon"]
 
     # -------------------------------
-    # 2) FORECAST (3 DAYS)
+    # 2) FORECAST + REAL HOURLY DATA
     # -------------------------------
     forecast_url = (
         f"https://api.openweathermap.org/data/2.5/forecast?"
@@ -100,9 +100,7 @@ def get_weather():
     if "list" not in forecast_raw:
         forecast_raw["list"] = []
 
-    # ----------------------------------------------------
-    # ⭐ NEW — REAL 24-HOUR HOURLY DATA (3-hour intervals)
-    # ----------------------------------------------------
+    # ⭐ REAL 24-HOUR HOURLY TEMPS
     hourly_temps = []
 
     for entry in forecast_raw.get("list", []):
@@ -111,16 +109,16 @@ def get_weather():
 
         if dt and temp_val is not None:
             hourly_temps.append({
-                "time": dt.split(" ")[1][:5],  # "09:00"
+                "time": dt.split(" ")[1][:5],  # 09:00
                 "temp": temp_val
             })
 
-        if len(hourly_temps) >= 8:  # 8 × 3h = 24h
+        if len(hourly_temps) >= 8:  # 8 intervals × 3h = 24 hours
             break
 
-    # ----------------------------------------------------
-    # Continue your forecast (unchanged)
-    # ----------------------------------------------------
+    # -------------------------------
+    # 3) THREE-DAY FORECAST
+    # -------------------------------
     forecast_list = []
     days_seen = set()
 
@@ -149,7 +147,7 @@ def get_weather():
             break
 
     # -------------------------------
-    # 3) AIR QUALITY
+    # 4) AIR QUALITY
     # -------------------------------
     aqi_url = (
         f"https://api.openweathermap.org/data/2.5/air_pollution?"
@@ -171,7 +169,7 @@ def get_weather():
     aqi_label = aqi_label_map.get(aqi_index, "Unknown")
 
     # -------------------------------
-    # 4) AI GUIDE
+    # 5) AI GUIDE (⭐ FIXED HOURLY PASSED)
     # -------------------------------
     ai_guide = generate_ai_weather_guide(
         city=current["name"],
@@ -183,14 +181,17 @@ def get_weather():
         wind_speed_kmh=wind_speed_kmh,
         category=category,
         description=description,
-        hourly=[],
+
+        # ⭐ Fix: send real hourly temps instead of empty list
+        hourly=hourly_temps,
+
         daily=[],
         timezone_offset=timezone_offset,
         aqi=aqi_index,
     )
 
     # -------------------------------
-    # 5) FINAL JSON RESPONSE
+    # 6) FINAL RESPONSE
     # -------------------------------
     return jsonify({
         "city": current["name"],
@@ -209,7 +210,7 @@ def get_weather():
         },
         "forecast": forecast_list,
 
-        # ⭐ NEW — REAL HOURLY TEMPS SENT TO FRONTEND
+        # ⭐ Real hourly data sent to frontend
         "hourly": hourly_temps,
 
         "ai_guide": ai_guide
