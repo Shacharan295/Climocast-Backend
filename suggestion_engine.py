@@ -82,51 +82,92 @@ def _build_safety_text(temp, humidity, wind_speed_kmh, category, climate, aqi):
     w = wind_speed_kmh or 0
     cat = (category or "").lower()
 
-    # Temperature Risks
-    if t >= 36:
-        tips.append("Avoid long exposure to direct sunlight and keep yourself hydrated throughout the day.")
+    # -------------------------------
+    # 🌡 TEMPERATURE RISKS
+    # -------------------------------
+    if t >= 40:
+        tips.append("Extreme heat today — limit outdoor exposure, drink plenty of water, and avoid going out during peak afternoon hours.")
+    elif t >= 36:
+        tips.append("The heat may feel intense, so stay hydrated and avoid direct sunlight for long periods.")
+    elif t <= 0:
+        tips.append("Freezing temperatures expected — wear thermal layers and keep skin covered to avoid frostbite.")
     elif t <= 3:
-        tips.append("Wear strong winter layers and reduce outdoor exposure, especially when the wind picks up.")
+        tips.append("It may feel very cold, so dress in warm layers and reduce time outdoors, especially if the wind increases.")
 
-    # Humidity Risks
-    if h >= 80 and t >= 28:
-        tips.append("High humidity can add extra strain, so take short breaks in cooler or shaded spots.")
+    # -------------------------------
+    # 💧 HUMIDITY RISKS
+    # -------------------------------
+    if h >= 85 and t >= 30:
+        tips.append("High humidity combined with heat can increase discomfort and exhaustion — take regular breaks in cooler areas.")
+    elif h >= 80:
+        tips.append("Humidity may make the weather feel heavier than usual, so stay hydrated.")
 
-    # Wind Risks
-    if w >= 40:
-        tips.append("Strong winds may reduce visibility and balance, so stay cautious in open areas.")
+    # -------------------------------
+    # 🌬 WIND RISKS
+    # -------------------------------
+    if w >= 60:
+        tips.append("Very strong winds today — avoid tall structures and open areas as gusts may be hazardous.")
+    elif w >= 40:
+        tips.append("Strong winds can reduce visibility and affect balance, so stay alert if spending time outdoors.")
     elif w >= 25:
-        tips.append("Breezy conditions may disturb lighter objects outdoors, so secure anything on balconies or terraces.")
+        tips.append("Breezy conditions may disrupt lightweight objects outdoors — secure anything on balconies or terraces.")
 
-    # Rain / Storm / Snow
+    # -------------------------------
+    # 🌧 RAIN / STORM / SNOW
+    # -------------------------------
     if cat in ["rain", "drizzle"]:
-        tips.append("Roads and paths can be slippery, so walk slowly and keep rain protection handy.")
-    if cat in ["thunderstorm", "storm"]:
-        tips.append("Stay indoors during lightning and avoid open grounds or isolated tall trees.")
-    if cat in ["snow", "snowy"]:
-        tips.append("Snow or ice can reduce grip, so move carefully and allow extra time for travel.")
+        tips.append("Slippery roads and paths are possible, so move carefully and keep rain protection handy.")
+    if "thunder" in cat or "storm" in cat:
+        tips.append("Thunderstorms expected — stay indoors when possible and avoid open fields or tall isolated trees.")
+    if "snow" in cat:
+        tips.append("Snow or ice may reduce grip and visibility, so allow extra travel time and move cautiously.")
 
-    # Climate-specific notes
+    # -------------------------------
+    # 🏜 CLIMATE-SPECIFIC NOTES
+    # -------------------------------
     if climate == "desert hot" and t >= 32:
-        tips.append("Dry desert heat can cause dehydration quickly, so carry water if you step outside.")
-    if climate.startswith("coastal") and cat in ["rain", "drizzle", "thunderstorm"]:
-        tips.append("Coastal showers can begin suddenly, so plan longer activities with caution.")
+        tips.append("Dry desert heat can cause dehydration quickly — carry water if you step outside.")
+    if climate.startswith("coastal") and ("rain" in cat or "drizzle" in cat or "thunder" in cat):
+        tips.append("Coastal showers can form suddenly, so plan longer activities with caution.")
 
-    # ----------------------------------------
-    # ⭐ NEW — AIR QUALITY RISKS
-    # ----------------------------------------
+    # -------------------------------
+    # 🫁 AIR QUALITY RISKS
+    # -------------------------------
     if aqi is not None:
         if aqi == 5:
-            tips.append("Air quality is very poor — avoid outdoor activity and consider using a mask if you step outside.")
+            tips.append("Air quality is very poor — avoid outdoor activity, keep windows closed, and use a mask if you must go outside.")
         elif aqi == 4:
-            tips.append("Air quality is poor today, so limit heavy outdoor activity and keep windows closed if possible.")
+            tips.append("Air quality is poor today — limit outdoor exercise and consider wearing a mask when going out.")
         elif aqi == 3:
-            tips.append("Air quality is moderate — sensitive groups may feel slight irritation or discomfort.")
+            tips.append("Air quality is moderate — sensitive groups may feel irritation or mild discomfort.")
 
+    # -------------------------------
+    # ⚠️ COMBINED RISK INTELLIGENCE
+    # -------------------------------
+    # ⚡ Heat + Humidity combo = higher risk
+    if t >= 35 and h >= 75:
+        tips.append("The combination of high heat and humidity can increase heat stress, so rest often and stay hydrated.")
+
+    # ❄ Cold + Wind combo = wind chill risk
+    if t <= 5 and w >= 25:
+        tips.append("Cold temperatures with wind may cause a stronger chill effect — protect exposed skin.")
+
+    # 🌩 Storm + Wind combo = severe weather
+    if ("thunder" in cat or "storm" in cat) and w >= 40:
+        tips.append("Stormy and windy conditions together may be dangerous — avoid travel unless necessary.")
+
+    # 🌫 Pollution + Heat = breathing strain
+    if aqi >= 4 and t >= 32:
+        tips.append("Poor air quality combined with heat can strain breathing — avoid outdoor activity where possible.")
+
+    # -------------------------------
+    # DEFAULT SAFE MESSAGE
+    # -------------------------------
     if not tips:
         return "No major weather-related concerns today, but staying aware of changing conditions is always helpful."
 
     return " ".join(tips)
+
 
 
 # ----------------------------------------
