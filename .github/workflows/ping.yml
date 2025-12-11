@@ -2,22 +2,22 @@ name: Keep Render Backend Alive
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # Ping every 5 minutes (prevents sleep completely)
+    - cron: "*/5 * * * *"   # Every 5 minutes
   workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Render Backend (with retry)
+      - name: First Ping
         run: |
-          echo "Pinging Render backend…"
+          echo "Ping 1 at $(date -u)"
+          curl -s --max-time 8 https://weather-backend-e8cz.onrender.com/weather?city=Delhi || true
 
-          # Try up to 3 times, short timeout, exit quietly on failure
-          for i in 1 2 3; do
-            curl -s --max-time 8 https://weather-backend-e8cz.onrender.com/weather?city=Delhi && break
-            echo "Ping attempt $i failed, retrying…"
-            sleep 3
-          done
+      - name: Wait 30 seconds
+        run: sleep 30
 
-          echo "Ping completed."
+      - name: Second Ping
+        run: |
+          echo "Ping 2 at $(date -u)"
+          curl -s --max-time 8 https://weather-backend-e8cz.onrender.com/weather?city=Delhi || true
