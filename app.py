@@ -35,6 +35,46 @@ def suggest_city():
 
 
 # -------------------------------
+# AQI HELPERS (REAL AQI)
+# -------------------------------
+def calculate_aqi_pm25(pm25):
+    breakpoints = [
+        (0.0, 12.0, 0, 50),
+        (12.1, 35.4, 51, 100),
+        (35.5, 55.4, 101, 150),
+        (55.5, 150.4, 151, 200),
+        (150.5, 250.4, 201, 300),
+        (250.5, 500.4, 301, 500),
+    ]
+
+    for c_low, c_high, aqi_low, aqi_high in breakpoints:
+        if c_low <= pm25 <= c_high:
+            return round(
+                ((aqi_high - aqi_low) / (c_high - c_low))
+                * (pm25 - c_low)
+                + aqi_low
+            )
+    return None
+
+
+def aqi_label(aqi):
+    if aqi is None:
+        return "Unknown"
+    if aqi <= 50:
+        return "Good"
+    elif aqi <= 100:
+        return "Moderate"
+    elif aqi <= 150:
+        return "Unhealthy for Sensitive Groups"
+    elif aqi <= 200:
+        return "Unhealthy"
+    elif aqi <= 300:
+        return "Very Unhealthy"
+    else:
+        return "Hazardous"
+
+
+# -------------------------------
 # WEATHER ENDPOINT
 # -------------------------------
 @app.route("/weather")
@@ -67,7 +107,7 @@ def get_weather():
     humidity = current["main"]["humidity"]
     pressure = current["main"]["pressure"]
 
-    wind_speed = current["wind"]["speed"] * 3.6  # convert m/s → km/h
+    wind_speed = current["wind"]["speed"] * 3.6
     timezone_offset = current["timezone"]
 
     local_time = datetime.utcfromtimestamp(
@@ -86,48 +126,29 @@ def get_weather():
     )
     forecast_raw = requests.get(forecast_url).json()
 
-    # -------------------------------
-    # ⭐ PERFECT 24-HOUR HOURLY DATA
-    # -------------------------------
     hourly_temps = []
-
-    # First point = current temperature
     now_time = datetime.utcfromtimestamp(
         current["dt"] + timezone_offset
     ).strftime("%H:00")
 
-    hourly_temps.append({
-        "time": now_time,
-        "temp": temp
-    })
+    hourly_temps.append({"time": now_time, "temp": temp})
 
-    # Add next 7 forecast hours (3-hour intervals)
     count = 1
     for entry in forecast_raw.get("list", []):
         if count > 7:
             break
-
-        dt = entry.get("dt_txt", "")
-        hour_label = dt.split(" ")[1][:5]
-        temp_val = entry["main"]["temp"]
-
+        hour_label = entry["dt_txt"].split(" ")[1][:5]
         hourly_temps.append({
             "time": hour_label,
-            "temp": temp_val
+            "temp": entry["main"]["temp"]
         })
-
         count += 1
 
-    # -------------------------------
-    # 3) 3-DAY FORECAST
-    # -------------------------------
     forecast_list = []
     days_seen = set()
 
     for entry in forecast_raw.get("list", []):
-        dt = entry["dt_txt"]
-        date, time = dt.split(" ")
-
+        date, time = entry["dt_txt"].split(" ")
         if time == "12:00:00" and date not in days_seen:
             forecast_list.append({
                 "day": date,
@@ -135,12 +156,11 @@ def get_weather():
                 "description": entry["weather"][0]["description"].title()
             })
             days_seen.add(date)
-
         if len(forecast_list) >= 3:
             break
 
     # -------------------------------
-    # 4) AIR QUALITY
+    # 4) AIR QUALITY (REAL AQI)
     # -------------------------------
     aqi_url = (
         f"https://api.openweathermap.org/data/2.5/air_pollution?"
@@ -148,15 +168,11 @@ def get_weather():
     )
     aqi_raw = requests.get(aqi_url).json()
 
-    aqi_index = aqi_raw.get("list", [{}])[0].get("main", {}).get("aqi", None)
-    aqi_label_map = {
-        1: "Good",
-        2: "Fair",
-        3: "Moderate",
-        4: "Poor",
-        5: "Very Poor"
-    }
-    aqi_label = aqi_label_map.get(aqi_index, "Unknown")
+    components = aqi_raw.get("list", [{}])[0].get("components", {})
+    pm25 = components.get("pm2_5")
+
+    real_aqi = calculate_aqi_pm25(pm25)
+    real_aqi_label = aqi_label(real_aqi)
 
     # -------------------------------
     # 5) AI WEATHER GUIDE
@@ -174,16 +190,8 @@ def get_weather():
         hourly=hourly_temps,
         daily=forecast_list,
         timezone_offset=timezone_offset,
-        aqi=aqi_index,
+        aqi=real_aqi,
     )
-
-    # -------------------------------# -------------------------------
-# FINAL RESPONSE
-# -------------------------------
-
-        # -------------------------------
-    # FINAL RESPONSE
-    # -------------------------------
 
     def get_wind_mood(speed):
         if speed <= 5:
@@ -210,14 +218,16 @@ def get_weather():
         "pressure": pressure,
         "wind_speed": round(wind_speed, 1),
         "wind_mood": get_wind_mood(wind_speed),
-        "air_quality": {"aqi": aqi_index, "label": aqi_label},
+        "air_quality": {
+            "aqi": real_aqi,
+            "label": real_aqi_label,
+            "pm25": pm25
+        },
         "forecast": forecast_list,
         "hourly": hourly_temps,
         "ai_guide": ai_guide
     })
 
 
-
 if __name__ == "__main__":
     app.run(debug=True)
-
