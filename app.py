@@ -126,24 +126,30 @@ def get_weather():
     )
     forecast_raw = requests.get(forecast_url).json()
 
+    # -------------------------------
+    # ⭐ ONLY FIX: ACCURATE HOURLY DATA (NO RANDOM X AXIS)
+    # -------------------------------
     hourly_temps = []
-    now_time = datetime.utcfromtimestamp(
-        current["dt"] + timezone_offset
-    ).strftime("%H:00")
 
-    hourly_temps.append({"time": now_time, "temp": temp})
+    # Inject CURRENT temperature as first point
+    hourly_temps.append({
+        "dt": current["dt"],
+        "temp": temp
+    })
 
     count = 1
     for entry in forecast_raw.get("list", []):
         if count > 7:
             break
-        hour_label = entry["dt_txt"].split(" ")[1][:5]
         hourly_temps.append({
-            "time": hour_label,
+            "dt": entry["dt"],
             "temp": entry["main"]["temp"]
         })
         count += 1
 
+    # -------------------------------
+    # DAILY FORECAST (UNCHANGED)
+    # -------------------------------
     forecast_list = []
     days_seen = set()
 
