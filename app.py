@@ -127,13 +127,14 @@ def get_weather():
     forecast_raw = requests.get(forecast_url).json()
 
     # -------------------------------
-    # ⭐ ONLY FIX: ACCURATE HOURLY DATA (NO RANDOM X AXIS)
+    # ⭐ ONLY FIX: ROUND CURRENT TIME TO 3-HOUR BLOCK
     # -------------------------------
     hourly_temps = []
 
-    # Inject CURRENT temperature as first point
+    rounded_dt = current["dt"] - (current["dt"] % 10800)
+
     hourly_temps.append({
-        "dt": current["dt"],
+        "dt": rounded_dt,
         "temp": temp
     })
 
