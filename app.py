@@ -131,14 +131,9 @@ def get_weather():
     # -------------------------------
     hourly_temps = []
 
-    rounded_dt = current["dt"] - (current["dt"] % 10800)
+    
 
-    hourly_temps.append({
-        "dt": rounded_dt,
-        "temp": temp
-    })
-
-    count = 1
+    count = 0
     for entry in forecast_raw.get("list", []):
         if count > 7:
             break
