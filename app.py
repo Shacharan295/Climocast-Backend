@@ -231,6 +231,7 @@ def get_weather():
         },
         "forecast": forecast_list,
         "hourly": hourly_temps,
+        "timezone_offset": timezone_offset,
         "ai_guide": ai_guide
     })
 
