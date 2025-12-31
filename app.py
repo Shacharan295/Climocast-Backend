@@ -127,21 +127,26 @@ def get_weather():
     forecast_raw = requests.get(forecast_url).json()
 
     # -------------------------------
-    # ⭐ ONLY FIX: ROUND CURRENT TIME TO 3-HOUR BLOCK
+
     # -------------------------------
+    # -------------------------------
+# ⭐ FIXED HOURLY FORECAST (TIME-AWARE)
+# -------------------------------
     hourly_temps = []
 
-    
+    current_utc = current["dt"]
 
-    count = 0
     for entry in forecast_raw.get("list", []):
-        if count > 7:
-            break
+     if entry["dt"] > current_utc:
         hourly_temps.append({
             "dt": entry["dt"],
             "temp": entry["main"]["temp"]
         })
-        count += 1
+
+        if len(hourly_temps) == 8:
+            break
+
+
 
     # -------------------------------
     # DAILY FORECAST (UNCHANGED)
